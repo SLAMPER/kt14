@@ -18,7 +18,7 @@ namespace kt12
             var postfix = ConvertToPostfix(input);
             double result = CalculatePostfix(postfix);
 
-            Console.WriteLine($"result {result}");
+            Console.WriteLine($"resuеlt {result}");
         }
 
         static List<string> ConvertToPostfix(string expr)
