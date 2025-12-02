@@ -1,44 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace kt12
 {
-
-    class Program
+    class SimpleCalculator
     {
+        static Dictionary<char, int> priorities = new Dictionary<char, int>
+    {
+        {'+', 1}, {'-', 1}, {'*', 2}, {'/', 2}
+    };
+
         static void Main()
         {
-            string text = File.ReadAllText("text.txt");
+            Console.Write("answer ");
+            string input = Console.ReadLine();
 
-            char[] separators = new char[] { ' ', '.', ',', '!', '?', ';', ':', '-', '\n', '\r', '\t' };
-            string[] words = text.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            var postfix = ConvertToPostfix(input);
+            double result = CalculatePostfix(postfix);
 
-            Dictionary<string, int> wordFrequency = new Dictionary<string, int>();
+            Console.WriteLine($"result {result}");
+        }
 
-            foreach (string word in words)
+        static List<string> ConvertToPostfix(string expr)
+        {
+            var output = new List<string>();
+            var operators = new Stack<char>();
+            string number = "";
+
+            foreach (char c in expr)
             {
-                string lowerWord = word.ToLower();
-
-                if (wordFrequency.ContainsKey(lowerWord))
+                if (char.IsDigit(c))
                 {
-                    wordFrequency[lowerWord]++;
+                    number += c;
+                }
+                else if (priorities.ContainsKey(c))
+                {
+                    if (number != "")
+                    {
+                        output.Add(number);
+                        number = "";
+                    }
+
+                    while (operators.Count > 0 && priorities[operators.Peek()] >= priorities[c])
+                    {
+                        output.Add(operators.Pop().ToString());
+                    }
+                    operators.Push(c);
+                }
+            }
+
+            if (number != "") output.Add(number);
+            while (operators.Count > 0) output.Add(operators.Pop().ToString());
+
+            return output;
+        }
+
+        static double CalculatePostfix(List<string> postfix)
+        {
+            var stack = new Stack<double>();
+
+            foreach (string token in postfix)
+            {
+                if (double.TryParse(token, out double num))
+                {
+                    stack.Push(num);
                 }
                 else
                 {
-                    wordFrequency[lowerWord] = 1;
+                    double b = stack.Pop();
+                    double a = stack.Pop();
+
+                    switch (token)
+                    {
+                        case "+": stack.Push(a + b); break;
+                        case "-": stack.Push(a - b); break;
+                        case "*": stack.Push(a * b); break;
+                        case "/": stack.Push(a / b); break;
+                    }
                 }
             }
 
-            var sortedWords = wordFrequency.OrderByDescending(pair => pair.Value);
-
-            Console.WriteLine("words ");
-
-            foreach (var pair in sortedWords)
-            {
-                Console.WriteLine($"{pair.Key}: {pair.Value}");
-            }
+            return stack.Pop();
         }
     }
 }
